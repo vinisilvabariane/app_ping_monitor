@@ -1,42 +1,36 @@
+import os
 import smtplib
-from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-sender_email = 'tihbaextrema@gmail.com'
-sender_password = 'dyvbhqkhqguzvxmj'
-recipient_email = 'emailteste@gmail.com'
-subject = 'Teste Ping Monitor'
-device_list = []
-last_alert_time = None
-email_sent = False
 
+def send_test_email() -> None:
+    smtp_server = os.getenv("PM_SMTP_SERVER", "")
+    smtp_port = int(os.getenv("PM_SMTP_PORT", "587"))
+    sender_email = os.getenv("PM_SENDER_EMAIL", "")
+    sender_password = os.getenv("PM_SENDER_PASSWORD", "")
+    recipient_email = os.getenv("PM_RECIPIENT_EMAIL", "")
 
-# Função para enviar o email
-def send_email(subject, message):
-    msg = MIMEMultipart()
-    msg['From'] = sender_email
-    msg['To'] = recipient_email
-    msg['Subject'] = subject
-    msg.attach(MIMEText(message, 'plain'))
+    if not all([smtp_server, sender_email, sender_password, recipient_email]):
+        print(
+            "Missing env vars. Set PM_SMTP_SERVER, PM_SENDER_EMAIL, PM_SENDER_PASSWORD and PM_RECIPIENT_EMAIL "
+            "before running this script."
+        )
+        return
+
+    msg = MIMEText("Ping Monitor test email sent successfully.")
+    msg["Subject"] = "Ping Monitor - Test Email"
+    msg["From"] = sender_email
+    msg["To"] = recipient_email
 
     try:
-        server = smtplib.SMTP('smtp.gmail.com', 587)
-        server.starttls()
-        server.login(sender_email, sender_password)
-        server.sendmail(sender_email, recipient_email, msg.as_string())
-        server.quit()
-        print("Email enviado com sucesso!")
-    except Exception as e:
-        print("Ocorreu um erro ao enviar o email:", e)
+        with smtplib.SMTP(smtp_server, smtp_port, timeout=10) as server:
+            server.starttls()
+            server.login(sender_email, sender_password)
+            server.sendmail(sender_email, [recipient_email], msg.as_string())
+        print("Email sent successfully.")
+    except Exception as exc:
+        print(f"Failed to send email: {exc}")
 
 
-# Exemplo de mensagem do email
-message = "Olá,\n\nEmail de teste!!\n\n"
-for device in device_list:
-    message += "- " + device + "\n"
-
-# Enviar o email se as condições forem atendidas
-if last_alert_time is None or email_sent:
-    send_email(subject, message)
-    last_alert_time = "Defina o horário aqui"
-    email_sent = True
+if __name__ == "__main__":
+    send_test_email()

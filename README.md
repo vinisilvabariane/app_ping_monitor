@@ -1,60 +1,41 @@
-----------------------
-Ping Monitor 
-----------------------
-\\executa setup
-python setup.py build
+# Ping Monitor
 
+Aplicativo desktop em Python/Tkinter para monitorar hosts por ICMP (ping), com arquitetura modular.
 
-----------------------
-Descrição:
-----------------------
-O Ping Monitor é um aplicativo simples que permite 
-monitorar o status de dispositivos na rede usando o protocolo ICMP (Ping).
-Ele exibe o status de cada dispositivo em uma interface gráfica e 
-alerta quando um dispositivo para de responder ao ping.
+## Estrutura (boas praticas)
 
+- `main.py`: entrypoint simples.
+- `src/ping_monitor/app.py`: bootstrap da aplicacao.
+- `src/ping_monitor/ui/main_window.py`: camada de interface.
+- `src/ping_monitor/services/pinger.py`: regra de ping (com fallback para comando do sistema).
+- `src/ping_monitor/services/emailer.py`: envio de alerta por e-mail.
+- `src/ping_monitor/models.py`: entidades da aplicacao.
+- `src/ping_monitor/config.py`: configuracoes por variavel de ambiente.
 
-----------------------
-Instruções de Uso
-----------------------
-Adicionar Dispositivos:
-Clique no botão "Add Device".
-Insira o endereço IP do dispositivo que você deseja monitorar.
-Clique em "OK" para confirmar a adição do dispositivo.
+## Como executar
 
-Remover Dispositivos:
-Selecione o dispositivo na tabela.
-Clique no botão "Remove Selected" para remover o dispositivo da lista de monitoramento.
+1. Python 3.10+ instalado.
+2. Instalar dependencias:
+   - `python -m pip install -r requirements.txt`
+3. Rodar o app:
+   - `python main.py`
 
-Iniciar Monitoramento:
-Clique no botão "Start Monitoring" para iniciar o monitoramento dos dispositivos.
-O status de cada dispositivo será atualizado na tabela a cada segundo.
+## Alerta por e-mail (opcional)
 
-Parar Monitoramento:
-Clique no botão "Stop Monitoring" para interromper o monitoramento dos dispositivos.
-O status dos dispositivos será limpo na tabela.
+Configure as variaveis no sistema:
 
-Alerta de Dispositivos Não Respondendo:
-Quando um dispositivo para de responder ao ping, um alerta por email será enviado 
-(para emailteste@gmail.com). Verifique a seção "Configurações de Email" no 
-código para personalizar o remetente, destinatário e servidor SMTP.
+- `PM_SMTP_SERVER`
+- `PM_SMTP_PORT` (default: `587`)
+- `PM_SENDER_EMAIL`
+- `PM_SENDER_PASSWORD`
+- `PM_RECIPIENT_EMAIL`
 
+Teste de e-mail:
 
-----------------------
-Versão do Aplicativo:
-----------------------
-A versão atual do aplicativo é exibida na parte inferior direita da janela.
+- `python mail_test.py`
 
+## Notas tecnicas
 
-----------------------
-Lógica do Programa.
-----------------------
-O Ping Monitor utiliza threads para executar o monitoramento de dispositivos e a 
-interface gráfica. A classe MonitorThread é responsável por realizar o ping em intervalos 
-regulares para verificar o status dos dispositivos. A interface gráfica é criada usando a 
-biblioteca Tkinter.
-
-Os dispositivos adicionados são exibidos em uma tabela, onde o status de 
-cada dispositivo é atualizado em tempo real. Quando um dispositivo para de
-responder ao ping, um alerta por email é enviado para o endereço especificado 
-nas configurações.
+- UI atualizada de forma thread-safe usando fila + `after`.
+- Alertas enviados somente na transicao para offline.
+- Se `ping3` nao estiver disponivel, o app usa `ping` do sistema operacional.
